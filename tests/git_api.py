@@ -1,17 +1,7 @@
 import requests
+import json
 
-'''
-Not a final version. TODO: Get everything in a dict for an easy JSON generation pattern.
-For now, this script takes call commits api from every repo listen in reposApi dict ,
-sorts the response and prints useful data for us. This script will be useful when
-it will generate a usable JSON file.
-
-BE CAREFULL ON HOW MANY CALLS YOU DO WITH THIS SCRIPT. THERE IS A LIMIT OF CALLS THAT
-YOU CAN DO PER HOUR.
-'''
-
-
-reposApi = {'shipit': 'https://api.github.com/repos/mozilla-releng/ship-it/commits',
+reposLIST = {'shipit': 'https://api.github.com/repos/mozilla-releng/ship-it/commits',
             'services': 'https://api.github.com/repos/mozilla/release-services/commits',
             'beetmoverscript': 'https://api.github.com/repos/mozilla-releng/beetmoverscript/commits',
             'addonscript': 'https://api.github.com/repos/mozilla-releng/addonscript/commits',
@@ -30,18 +20,29 @@ reposApi = {'shipit': 'https://api.github.com/repos/mozilla-releng/ship-it/commi
             'pushapkscript': 'https://api.github.com/repos/mozilla-releng/pushapkscript/commits',
             'balrogscript': 'https://api.github.com/repos/mozilla-releng/balrogscript/commits',
             'funsize': 'https://api.github.com/repos/mozilla-releng/funsize/commits',
-            'signtool': 'https://api.github.com/repos/mozilla-releng/signtool/commits'}
+            'signtool': 'https://api.github.com/repos/mozilla-releng/signtool/commits'
+}
+for reposLIST_key in reposLIST:     # for loop to scroll through the reposLIST
+    r = requests.get(reposLIST.get(reposLIST_key))     # get infos from gitAPI page
+    p = r.json()     # turn into JSON content
+    commit = {}
+    commit_number = 0    # dictionary with key = SHA and values=name, email, date, URL and message
+    for keys in p:    # loop to scroll through json content
+        author = {}    # dictionary with personal infor about commiter and commit
+        author.update({ 'Name: ' : keys['commit']['author']['name'],
+                        'Email: ' : keys['commit']['author']['email'],
+                        'Date: ' : keys['commit']['author']['date'],
+                        'URL: ' : keys['commit']['url'],
+                        'Message: ' : keys['commit']['message'] })     # add info in author dictionary
+        #commit.update({ keys['sha'] : author })     # add info in commit dictionary
+        commit.update({ commit_number : author })
+        commit_number += 1
+    reposLIST.update({reposLIST_key : commit})     # add all the info into the main dictionary
+with open('./github_changelog.json', 'w') as fp:     # open .json file with write permission
+    json.dump(reposLIST, fp)     # write in the .json file as a string
 
 
-for key in reposApi:      #classic "for" that looks down into reposApi
-    r = requests.get(reposApi.get(key))        #this one gets the value stored in every key
-    p = r.json()      #converts variable r into a json that can be accesed like a dict
-    print (key + ':')      #print the repo for the specific commits
-    for keys in p:      #classic "for" that looks down into p. P is a json.
-        print ('sha:' + keys['sha'] + '\n' +
-                ' name: ' + keys['commit']['author']['name'] + '\n' +
-                ' email: ' + keys['commit']['author']['email'] + '\n' +
-                ' date:  ' + keys['commit']['author']['date'] + '\n' +
-                ' url: ' + keys['url'])
-        ''' ^^ Prints only what we call useful informations out of the long json we have
-               For now: like a dict, it only prints sha, name, date and url of that commit.'''
+
+''' Using this Json viewer " http://www.jsonviewer.com/ ", 
+        you can copy the content from github_changelog.json into RAW json data: 
+            and see all the commits '''
