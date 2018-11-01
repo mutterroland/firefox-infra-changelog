@@ -1,19 +1,21 @@
 import os
 import json
 import markdown2
-current_dir = os.path.dirname(os.path.realpath(__file__))
 
-def link_to_md( name ):
+current_dir = os.path.dirname(os.path.realpath(__file__))
+json_data= open('./github_changelog.json').read()  # opens github_changelog.json
+data = json.loads(json_data) # converts the load and assigns a variable so we can work with it
+
+def link_to_md(name): #function for generating hyperlink that leads into md table of a specific repo ### See OneRepo.py for further reference
     path = "file:///" + current_dir + "\\" + name + ".md"
     erl = '''<a href="%s">link</a>''' % path
     return erl
 
+def link_in_repo(name): #function to generate hyperlink that leads to github repo
+    link = data[key]['0']['Url Repo']
+    repo = '''<a href={}>{}</a>'''.format(link, key)
+    return repo
 
-
-
-
-json_data= open('./github_changelog.json').read()
-data = json.loads(json_data)
 
 repos = ['Markdown Repo Table']
 
@@ -24,12 +26,11 @@ for repo in repos:
     tables[repo] = base_table
 
 
-for key in data:
-    arepo = key
-    link = link_to_md(key)
-    lastMsg = data[key]['0']['Message: ']
-
-    date = data[key]['0']["Date: "]
+for key in data: #for that "selects" needed informations from github_changelog json and stores data that ends in the actual .md file
+    arepo = link_in_repo(key) #variable that use link_in_repo(name) function
+    link = link_to_md(key) #variable that use link_to(name) function
+    lastMsg = data[key]['0']['Message'] #variable that takes data from github_changelog.json
+    date = data[key]['0']['Date'] #variable that takes data from github_changelog.json
 
     row = "|" + arepo +\
         "|" + link +\
@@ -37,15 +38,14 @@ for key in data:
         "|" + date + '\n'
 
     for repo in tables.keys():
-        print (tables.keys())
         tables[repo] = tables[repo] + row
 
 
 output_files = []
 md_file_name = "Main.md"
-md_file = open(current_dir + "/../" + md_file_name, 'w')
+md_file = open(current_dir + "/../" + md_file_name, 'w') #creates the actual md file
 
-for key, value in tables.items():
+for key, value in tables.items(): #for that converts .md file into .html file
     if value != base_table:
         md_file.write("## " + key.upper() + "\n\n")
         md_file.write(value + "\n\n")

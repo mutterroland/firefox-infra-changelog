@@ -2,6 +2,9 @@ import os
 import json
 import markdown2
 
+### Tried to create a python script that generates a .md file for every repo so we can have another .md file for each repo.
+### That could be used if we want to link main page to each .md file for every repo.
+
 current_dir = os.path.dirname(os.path.realpath(__file__))
 
 json_data= open('./github_changelog.json').read()
@@ -15,14 +18,11 @@ tables = {}
 for repo in repos:
     tables[repo] = base_table
 
-
-categories = data['beetmoverscript']
-
-
-for key, value in categories.items():
+for key in data:
     ncommit = key
-    lastMsg = categories[key]['Message: ']
-    date = categories[key]["Date: "]
+    print(data[key])
+    lastMsg = data[key]['Message']
+    date = data[key]["Date"]
 
     row = "|" + ncommit +\
         "|" + lastMsg +\
@@ -34,7 +34,7 @@ for key, value in categories.items():
 
 #print (tables.items())
 output_files = []
-md_file_name = "beetmoverscript.md"
+md_file_name = "{}.md".format(categories)
 md_file = open(current_dir + "/../" + md_file_name, 'w')
 
 for key, value in tables.items():
